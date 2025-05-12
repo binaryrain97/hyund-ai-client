@@ -100,7 +100,7 @@ export default function SaveForm() {
       }
 
       try {
-        await axios.post('/api/upload', formData, {
+        await axios.post('http://127.0.0.1:5000/upload_file', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         // 상태: 완료
