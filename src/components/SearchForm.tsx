@@ -3,36 +3,43 @@ import { Input, Button, List, Typography, Tooltip, Spin } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 
+type FileType = { name: string; path: string };
+
 const FileListContainer = styled.div`
   background: linear-gradient(135deg, #1e283ccc, #223047cc);
   border-radius: 16px;
   padding: 20px 24px;
   color: #eaf6ff;
-  max-height: 360px;
+  height: 330px;
+  max-height: 330px;
   overflow-y: auto;
   margin-bottom: 36px;
   margin-top: 56px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  flex-direction: column;
 `;
 
-// const FileListItem = styled.div`
-//   display: flex;
-//   justify-content: space-between;
-//   align-items: center;
-//   padding: 8px 12px;
-//   border-bottom: 1px solid #2a3a5a;
-//   transition: background-color 0.3s ease;
-//   cursor: pointer;
-//   &:hover {
-//     background-color: #2a3a5a;
-//   }
-// `;
+const CenteredMessage = styled.div`
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const SearchBarWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+`;
 
 const SearchBarRow = styled.div`
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
+  max-width: 500px;
 `;
 
 const StyledInput = styled(Input.TextArea)`
@@ -41,12 +48,14 @@ const StyledInput = styled(Input.TextArea)`
   max-height: 72px !important;
   font-size: 15px;
   border-radius: 8px;
-  background: rgba(122, 162, 243, 0.89);
-  color:rgb(1, 3, 4);
+  background: rgba(30, 40, 60, 0.7) !important;
+  color: #8fd6ff !important;
+  border: 1px solid #8fd6ff !important;
   text-align: center;
   flex: 1;
+  font-weight: 600;
   &::placeholder {
-    color:rgb(9, 72, 109);
+    color: #8fd6ff;
     opacity: 1;
     text-align: center;
     width: 100%;
@@ -89,29 +98,33 @@ const FileLink = styled.a`
   }
 `;
 
-// const FilePath = styled.span`
-//   color: #b8dfff;
-//   font-size: 12px;
-//   max-width: 35%;
-//   white-space: nowrap;
-//   overflow: hidden;
-//   text-overflow: ellipsis;
-//   font-style: italic;
-// `;
+const HeaderRow = styled.div`
+  display: flex;
+  justify-content: flex-start;
+  padding: 8px 0;
+  border-bottom: 1px solid #2a3a5a;
+  font-weight: 700;
+  font-size: 14px;
+  color: #8fd6ff;
+`;
+
+const HeaderItem = styled.div`
+  &:first-child {
+    width: 60%;
+  }
+  &:last-child {
+    margin-left: 16px;
+    font-size: 13px;
+    flex: 1;
+  }
+`;
 
 export default function SearchSection() {
-  const [files] = useState([
-    { name: "sample.pdf", path: "/Users/yourname/Documents/sample.pdf" },
-    { name: "test.docx", path: "/Users/yourname/Desktop/test.docx" },
-    { name: "longnamefile1.txt", path: "/Users/yourname/Downloads/longnamefile1.txt" },
-    { name: "longnamefile2.txt", path: "/Users/yourname/Downloads/longnamefile2.txt" },
-    { name: "longnamefile3.txt", path: "/Users/yourname/Downloads/longnamefile3.txt" },
-    { name: "longnamefile4.txt", path: "/Users/yourname/Downloads/longnamefile4.txt" },
-    { name: "longnamefile5.txt", path: "/Users/yourname/Downloads/longnamefile5.txt" },
-  ]);
+  const [files, setFiles] = useState<FileType[]>([]);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [visibleCount, setVisibleCount] = useState(0);
+  const [searched, setSearched] = useState(false);
 
   useEffect(() => {
     if (!loading && files.length > 0) {
@@ -128,73 +141,101 @@ export default function SearchSection() {
 
   const handleSearch = () => {
     setLoading(true);
-    // 검색 로직 (예시로 2초 후 검색 완료)
+    setSearched(true);
     setTimeout(() => {
       setLoading(false);
-      // setFiles(검색 결과); // 실제로는 검색 결과로 파일 목록 갱신
+      if (query.trim() === '') {
+        setFiles([]);
+      } else {
+        setFiles([
+          { name: "example1.txt", path: "/path/to/example1.txt" },
+          { name: "example2.txt", path: "/path/to/example2.txt" },
+          { name: "example3.txt", path: "/path/to/example3.txt" },
+          { name: "example4.txt", path: "/path/to/example4.txt" },
+          { name: "example5.txt", path: "/path/to/example5.txt" },
+          { name: "example6.txt", path: "/path/to/example6.txt" },
+          { name: "example7.txt", path: "/path/to/example7.txt" },
+        ]);
+      }
     }, 2000);
   };
-  
 
   return (
     <div style={{ maxWidth: 500, width: '100%', margin: '0 auto' }}>
-      {/* 파일 목록 */}
       <FileListContainer>
-      <Typography.Text strong style={{ color: "#8fd6ff" }}>
-        유사한 파일 목록
-      </Typography.Text>
+        <Typography.Text strong style={{ color: "#8fd6ff" }}>
+          검색 결과(유사도 순서)
+        </Typography.Text>
         {loading ? (
-          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: 180 }}>
+          <CenteredMessage>
             <Spin size="large" tip="검색 중..." />
-          </div>
+          </CenteredMessage>
+        ) : !searched ? (
+          <CenteredMessage>
+            <Typography.Text style={{ color: "#b8dfff", fontStyle: "italic" }}>
+              검색어를 입력하고 검색 버튼을 눌러주세요.
+            </Typography.Text>
+          </CenteredMessage>
+        ) : files.length === 0 ? (
+          <CenteredMessage>
+            <Typography.Text style={{ color: "#b8dfff", fontStyle: "italic" }}>
+              검색 결과가 없습니다.
+            </Typography.Text>
+          </CenteredMessage>
         ) : (
-          <List
-            size="small"
-            dataSource={files.slice(0, visibleCount)}
-            style={{ marginTop: 8 }}
-            renderItem={item => (
-              <List.Item>
-                <Tooltip title={item.path}>
-                  <FileLink
-                    href={`file://${item.path}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {item.name}
-                  </FileLink>
-                </Tooltip>
-                <Tooltip title={item.path}>
-                  <FileLink
-                    href={`file://${item.path}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ marginLeft: 16, fontSize: 13 }}
-                  >
-                    {item.path}
-                  </FileLink>
-                </Tooltip>
-              </List.Item>
-            )}
-          />
+          <>
+            <HeaderRow>
+              <HeaderItem>파일명</HeaderItem>
+              <HeaderItem>경로</HeaderItem>
+            </HeaderRow>
+            <List
+              size="small"
+              dataSource={files.slice(0, visibleCount)}
+              style={{ marginTop: 8, flex: 1, overflowY: 'auto' }}
+              renderItem={item => (
+                <List.Item>
+                  <Tooltip title={item.path}>
+                    <FileLink
+                      href={`file://${item.path}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {item.name}
+                    </FileLink>
+                  </Tooltip>
+                  <Tooltip title={item.path}>
+                    <FileLink
+                      href={`file://${item.path}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ marginLeft: 16, fontSize: 13 }}
+                    >
+                      {item.path}
+                    </FileLink>
+                  </Tooltip>
+                </List.Item>
+              )}
+            />
+          </>
         )}
-        {/* 검색 버튼은 필요에 따라 추가 */}
       </FileListContainer>
 
-      {/* 검색 바 */}
-      <SearchBarRow>
-        <StyledInput
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder={" \n찾고 싶은 파일의 내용을 입력하세요."}
-          autoSize={{ minRows: 3, maxRows: 3 }}
-        />
-        <StyledButton
-          type="primary"
-          icon={<SearchOutlined />}
-          onClick={handleSearch}
-          aria-label="검색"
-        />
-      </SearchBarRow>
+      <SearchBarWrapper>
+        <SearchBarRow>
+          <StyledInput
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder={" \n내용을 입력하세요."}
+            autoSize={{ minRows: 3, maxRows: 3 }}
+          />
+          <StyledButton
+            type="primary"
+            icon={<SearchOutlined />}
+            onClick={handleSearch}
+            aria-label="검색"
+          />
+        </SearchBarRow>
+      </SearchBarWrapper>
     </div>
   );
 }
