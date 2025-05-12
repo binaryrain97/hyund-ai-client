@@ -2,8 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { Input, Button, List, Typography, Tooltip, Spin } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
+import axios from 'axios';
 
-type FileType = { name: string; path: string };
+// 타입 정의
+type FileType = {
+  name: string;
+  dir: string;
+  category_kor: string;
+  similarity: number;
+};
 
 const FileListContainer = styled.div`
   background: linear-gradient(135deg, #1e283ccc, #223047cc);
@@ -110,12 +117,18 @@ const HeaderRow = styled.div`
 
 const HeaderItem = styled.div`
   &:first-child {
-    width: 60%;
+    width: 30%;
   }
-  &:last-child {
+  &:nth-child(2) {
+    width: 60%;
     margin-left: 16px;
     font-size: 13px;
-    flex: 1;
+  }
+  &:last-child {
+    width: 10%;
+    margin-left: 16px;
+    font-size: 13px;
+    text-align: right;
   }
 `;
 
@@ -139,25 +152,29 @@ export default function SearchSection() {
     }
   }, [loading, files]);
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     setLoading(true);
     setSearched(true);
-    setTimeout(() => {
+    try {
+      const response = await axios.post('http://127.0.0.1:5000/search', { query });
+      const data = Array.isArray(response.data) ? response.data : [];
+      // similarity 값이 없거나 undefined이면 0으로 보정
+      setFiles(
+        data.map(item => ({
+          name: item.name ?? '',
+          dir: item.dir ?? '',
+          category_kor: item.category_kor ?? '',
+          similarity: typeof item.similarity === 'number' && !isNaN(item.similarity)
+            ? item.similarity
+            : 0
+        }))
+      );
+    } catch (error) {
+      console.error('API 호출 오류:', error);
+      setFiles([]);
+    } finally {
       setLoading(false);
-      if (query.trim() === '') {
-        setFiles([]);
-      } else {
-        setFiles([
-          { name: "example1.txt", path: "/path/to/example1.txt" },
-          { name: "example2.txt", path: "/path/to/example2.txt" },
-          { name: "example3.txt", path: "/path/to/example3.txt" },
-          { name: "example4.txt", path: "/path/to/example4.txt" },
-          { name: "example5.txt", path: "/path/to/example5.txt" },
-          { name: "example6.txt", path: "/path/to/example6.txt" },
-          { name: "example7.txt", path: "/path/to/example7.txt" },
-        ]);
-      }
-    }, 2000);
+    }
   };
 
   return (
@@ -187,6 +204,7 @@ export default function SearchSection() {
             <HeaderRow>
               <HeaderItem>파일명</HeaderItem>
               <HeaderItem>경로</HeaderItem>
+              <HeaderItem>유사도</HeaderItem>
             </HeaderRow>
             <List
               size="small"
@@ -194,25 +212,31 @@ export default function SearchSection() {
               style={{ marginTop: 8, flex: 1, overflowY: 'auto' }}
               renderItem={item => (
                 <List.Item>
-                  <Tooltip title={item.path}>
+                  <Tooltip title={item.dir}>
                     <FileLink
-                      href={`file://${item.path}`}
+                      href={`file://${item.dir}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
                       {item.name}
                     </FileLink>
                   </Tooltip>
-                  <Tooltip title={item.path}>
+                  <Tooltip title={item.dir}>
                     <FileLink
-                      href={`file://${item.path}`}
+                      href={`file://${item.dir}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{ marginLeft: 16, fontSize: 13 }}
                     >
-                      {item.path}
+                      {item.dir}
                     </FileLink>
                   </Tooltip>
+                  <div style={{ marginLeft: 16, minWidth: 60, color: '#b8dfff', textAlign: 'right' }}>
+                    {(typeof item.similarity === 'number' && !isNaN(item.similarity)
+                      ? item.similarity
+                      : 0
+                    ).toFixed(3)}
+                  </div>
                 </List.Item>
               )}
             />
