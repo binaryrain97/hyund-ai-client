@@ -231,12 +231,12 @@ export default function SearchSection() {
                       {item.dir}
                     </FileLink>
                   </Tooltip>
-                  <div style={{ marginLeft: 16, minWidth: 60, color: '#b8dfff', textAlign: 'right' }}>
+                  {/* <div style={{ marginLeft: 16, minWidth: 60, color: '#b8dfff', textAlign: 'right' }}>
                     {(typeof item.similarity === 'number' && !isNaN(item.similarity)
                       ? item.similarity
                       : 0
                     ).toFixed(3)}
-                  </div>
+                  </div> */}
                 </List.Item>
               )}
             />
